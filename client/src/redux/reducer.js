@@ -18,7 +18,8 @@ const teamsReducer = function teams(state = defaultState, action) {
                                 ...state.playingTeams,
                                         {
                                             ...action.team,
-                                            playing11: []
+                                            playing11: getFirst11(action.team), //remove - []
+                                            playingCount: 11 //remove
                                         }
                             ]
                             let allTeams = setSelected(state.teams, playingTeams)
@@ -80,6 +81,23 @@ function setSelected(teams, playingTeams) {
         })
     })
     return teams
+}
+
+// tester -- remove
+function getFirst11(team) {
+    let res = [];
+    let i = 0;
+    for (i = 0; i < 2; i++) {
+        res.push(team.players.wicketkeepers[i])
+        res.push(team.players.batsmen[i])
+        res.push(team.players.allrounders[i])
+    }
+    res.push(team.players.batsmen[i])
+    res.push(team.players.batsmen[i+1])
+    res.push(team.players.bowlers[i])
+    res.push(team.players.bowlers[i+1])
+    res.push(team.players.bowlers[i+2])
+    return res;
 }
 
 export default teamsReducer

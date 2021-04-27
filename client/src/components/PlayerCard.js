@@ -11,7 +11,6 @@ class PlayerCard extends React.Component {
     }
 
     onClickHandler () {
-        debugger;
         let isSelected = !this.state.selected
         if (isSelected) {
             if (this.props.team.playingCount >= 11)

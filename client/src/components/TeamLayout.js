@@ -4,8 +4,8 @@ import PlayerCard from './PlayerCard'
 class TeamLayout extends React.Component {
     
     render() {
-        console.log("inside teamlayout")
-        console.log(this.props)
+        // console.log("inside teamlayout")
+        // console.log(this.props)
         const {players, name} = this.props.team
         return (
             <div className="">
