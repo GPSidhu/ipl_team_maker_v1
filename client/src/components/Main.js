@@ -18,8 +18,8 @@ class Main extends Component {
   // }
 
   render() {
-    console.log('inside main')
-    console.log(this.props)
+    // console.log('inside main')
+    // console.log(this.props)
     
     return (<div className="App mb-5 mt-5">
               <div className="container d-flex align-content-start flex-wrap justify-content-center">
