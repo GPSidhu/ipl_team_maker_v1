@@ -27,7 +27,7 @@ class TeamCard extends React.Component {
     render() {
         const team = this.props.team
         return (
-            <div className="card m-1"
+            <div className="card m-1 disabled"
                 style={{
                     background: this.props.selected ? '#ed9482' : '#fff',
                     height: '100px',

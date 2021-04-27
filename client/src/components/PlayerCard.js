@@ -11,12 +11,20 @@ class PlayerCard extends React.Component {
     }
 
     onClickHandler () {
+        debugger;
         let isSelected = !this.state.selected
-        this.setState({selected: isSelected})
-        if (isSelected)
-            this.props.selectPlayer(this.props.team, this.props.player)
-        else
-            this.props.deSelectPlayer(this.props.team, this.props.player) 
+        if (isSelected) {
+            if (this.props.team.playingCount >= 11)
+                alert("Maximum 11 players can be selected!!")
+            else {
+                this.props.selectPlayer(this.props.team, this.props.player)
+                this.setState({selected: isSelected})
+            }
+        }
+        else {
+            this.props.deSelectPlayer(this.props.team, this.props.player)
+            this.setState({selected: isSelected})
+        }
     }
 
     render() {

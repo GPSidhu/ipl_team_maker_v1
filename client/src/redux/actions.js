@@ -28,3 +28,11 @@ export function deSelectPlayer(team, player) {
     }
 }
 
+export function createTeams(team1, team2, constraints) {
+    return {
+        type: 'CREATE_TEAMS',
+        team1: team1,
+        team2: team2,
+        constraints: constraints
+    }
+}
