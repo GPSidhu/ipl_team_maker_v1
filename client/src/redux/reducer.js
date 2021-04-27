@@ -1,4 +1,5 @@
 import teamsData from '../data/teams'
+import { createTeams } from '../logic/createTeams'
 
 const defaultState = {
     selectedTeams: 0,
@@ -7,10 +8,6 @@ const defaultState = {
 }
 
 const teamsReducer = function teams(state = defaultState, action) {
-    //select team action
-    // if (action && action.team)
-    //     console.log('team to select: ' + action.team.code)
-
     switch(action.type) {
         case 'SELECT_TEAM': 
                             if (state.playingTeams.length === 2)
@@ -27,13 +24,7 @@ const teamsReducer = function teams(state = defaultState, action) {
                             let allTeams = setSelected(state.teams, playingTeams)
                             return {
                                     ...state, 
-                                    playingTeams: [ 
-                                        ...state.playingTeams,
-                                        {
-                                            ...action.team,
-                                            playing11: []
-                                        }
-                                    ],
+                                    playingTeams: playingTeams,
                                     teams: [...allTeams]
                                 }
 
@@ -47,37 +38,36 @@ const teamsReducer = function teams(state = defaultState, action) {
                             }
                             return state 
         case 'SELECT_PLAYER':
-                            if (state.team1 && action.team.code === state.team1.code) {
-                                let playing11 = state.team1.playing11;
-                                playing11.push(action.player);
-                                return {...state, team1: {...state.team1, playing11: playing11}}
+                            if (state.playingTeams && state.playingTeams.length > 0) {
+                                let playingTeams = state.playingTeams;
+                                playingTeams.forEach((pt) => {
+                                    if(pt.code === action.team.code) {
+                                        pt.playing11.push(action.player)
+                                        pt.playingCount = pt.playing11.length
+                                    }
+                                })
+                                console.log('player selected: '+action.player.name)
+                                return {...state, playingTeams: [...playingTeams]}
                             }
-                            if (state.team2 && action.team.code === state.team2.code) {
-                                let playing11 = state.team1.playing11;
-                                playing11.push(action.player);
-                                return {...state, team2: {...state.team2, playing11: playing11}}
-                            }
-                            console.log('player selected: '+action.player.name)
-                        break;
+                            break;
         
         case 'DESELECT_PLAYER': 
-                            debugger
-                            if (state.team1 && action.team.code === state.team1.code) {
-                               // let index = state.team1.playing11.findIndex((p) => p.id === action.player.id);
-                                let playing11 = state.team1.playing11.filter((p) => p.id !== action.player.id)
-                                return {...state, team1: {...state.team1, playing11: playing11}}
+                            if (state.playingTeams) {
+                                let playingTeams = state.playingTeams;
+                                playingTeams.forEach((pt) => {
+                                    if(pt.code === action.team.code) {
+                                        pt.playing11 = pt.playing11.filter((p) => p.id !== action.player.id)
+                                        pt.playingCount = pt.playing11.length
+                                    }
+                                })
+                                return {...state, playingTeams: [...playingTeams]}
                             }
-                            if (state.team2 && action.team.code === state.team1.code) {
-                                let index = state.team1.playing11.findIndex((p) => p.id === action.player.id);
-                                let playing11 = state.team1.playing11.splice(index, 1)
-                                return {...state, team2: {...state.team2, playing11: playing11}}
-                            }
-                            console.log('player deselected: '+action.player.name)
                         break;
-
+        case 'CREATE_TEAMS': 
+                            let res = createTeams(action.team1, action.team2, action.constraints || undefined) || []
+                            return {...state, result: [...res]} 
         default: return state
     }
-    return state
 }
 
 function setSelected(teams, playingTeams) {
