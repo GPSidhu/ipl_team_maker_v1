@@ -23,9 +23,9 @@ code {
   height: 100%;
 }
 
-.left-section, .right-section {
+/* .left-section, .right-section {
   border: 1px dashed black;
-}
+} */
 
 .card {
   cursor: pointer;

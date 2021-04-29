@@ -5,6 +5,7 @@ const teams = [
       rank: 5,
       nrr: -0.824,
       points: 4,
+      color: '#ab0202',
       players: {
         wicketkeepers: [
             {
@@ -162,6 +163,7 @@ const teams = [
       rank: 4,
       nrr: -0.824,
       points: 4,
+      color: '#1f3cbf',
       players: {
         wicketkeepers: [
             {
