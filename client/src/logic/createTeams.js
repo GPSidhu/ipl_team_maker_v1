@@ -1,4 +1,13 @@
 import _ from 'lodash'
+import {
+    knapSack
+} from './knapsack_bb'
+import {
+    knapSackBF
+} from './knapsack_bf'
+import {
+    getSubArraysWithinMaxCredit
+} from './util'
 
 // Result will contain following type of teams 
 const TEAM_TYPES = [
@@ -38,7 +47,7 @@ export const createTeams = function(team1, team2, constraints = {
             t1: team1.code,
             t2: team2.code
         }
-        let base = selectBaseTeam(data, config)
+        let base = selectTeam(data, config)
         console.log(base)
     //}
         let o_t1 = {name: 'Team 1'}
@@ -47,13 +56,14 @@ export const createTeams = function(team1, team2, constraints = {
         o_t1.players.batsmen = base.players.filter((p) => p.role === 'bt');
         o_t1.players.allrounders = base.players.filter((p) => p.role === 'ar');
         o_t1.players.bowlers = base.players.filter((p) => p.role === 'bl');
+        o_t1.playingCount = base.players.length;
         res.push(o_t1);
     return res;
 }
 
 function preProcess(team1, team2) {
-    let t1 = team1.playing11.map((p) => ({...p, team: team1.code}))
-    let t2 = team2.playing11.map((p) => ({...p, team: team2.code}))
+    let t1 = team1.playing11.map((p) => ({...p, team: team1.code, color: team1.color}))
+    let t2 = team2.playing11.map((p) => ({...p, team: team2.code, color: team2.color}))
 
     // get merged array 
     let merged = _.union(t1, t2);
@@ -68,7 +78,7 @@ function preProcess(team1, team2) {
 }
 
 // select min players in each category i.e. wk, bt, ar, bl
-function selectBaseTeam(data, config) {
+function selectTeam(data, config) {
     const teamType = config.team_type;
 
     // in case of biased, start with the highest point player of 
@@ -90,12 +100,14 @@ function getBiasedTeam(data, config, t /** 1 or 2 */) {
     let players = [];
     let creditLeft = config.max_credit;
     const constraints = config.constraints;
-    const fav_team_sorted = t === 1 ? data.t1_sorted : data.t2_sorted;
-    const other_team_sorted = t !== 1 ? data.t1_sorted : data.t2_sorted;
-    const fav_team_code =  t === 1 ? config.t1 : config.t2;
-    const other_team_code = t !== 1 ? config.t1 : config.t2;
+    // const fav_team = t === 1 ? data.team1 : team2;
+    // const other_team = t !== 1 ? data.team1 : team2;
+    const fav_team_sorted = t === 1 ? _.cloneDeep(data.t1_sorted) : _.cloneDeep(data.t2_sorted);
+    const other_team_sorted = t !== 1 ? _.cloneDeep(data.t1_sorted) : _.cloneDeep(data.t2_sorted);
+    // const fav_team_code =  t === 1 ? config.t1 : config.t2;
+    // const other_team_code = t !== 1 ? config.t1 : config.t2;
     let fav_team_count = 0;
-    let other_team_count = 0;
+    // let other_team_count = 0;
 
     let counts = {
             wk: 0,
@@ -120,18 +132,33 @@ function getBiasedTeam(data, config, t /** 1 or 2 */) {
     // find what are remaining min players and add from other team
     if (totalPlayersToSelect > 0)
         Object.keys(counts).forEach((k) => {
-            if (counts[k] < constraints[k][0])
-                creditLeft = addPlayer(k, other_team_sorted, constraints[k][0] - counts[k], creditLeft, players)
+            if (counts[k] < constraints[k][0]) {
+                let ot = addPlayer(k, other_team_sorted, constraints[k][0] - counts[k], creditLeft, players);
+                creditLeft = ot.rem_credit;
+                if (ot.rem_players === 0) // constraints met update counts
+                    counts[k] = constraints[k][0]
+            }
         })
 
     // need to select remaining players from other team with remaining credits left
-    
-    // debugger;
-    //const remPlayers = getMaxCreditPlayers(other_team_sorted, creditLeft, totalPlayersToSelect)
-    
+    totalPlayersToSelect = 11 - players.length;
+
+    let testTeam = other_team_sorted.filter((p, i) => [0, 1 ].indexOf(i) === -1)
+    const remPlayers = getMaxCreditPlayers(other_team_sorted, 16, 2); //creditLeft, totalPlayersToSelect)
+    // console.log('getMaxCreditPlayers')
+    // console.log(remPlayers)
+    //let v = knapSack(creditLeft, other_team_sorted)
+    //console.log(v)
+    //let val = knapSackBF(16, testTeam) //creditLeft, testTeam)
+    // players = [...players, ...remPlayers]
+    //console.log('bruteforce')
+    //console.log(val)
+    getSubArraysWithinMaxCredit()
+
+    debugger;
     return {
-        rem_credit: creditLeft,
-        players: players,
+        rem_credit: remPlayers.rem_credit,
+        players: [...players, ...remPlayers.players],
         counts: counts
     }
 }
@@ -143,22 +170,27 @@ function addPlayer(role/** 'wk', 'bt',... */, playersList/** array */, n, credit
             result.push(playersList[i]);
             creditLeft -= playersList[i].credit;
             n--;
+            playersList.splice(i, 1);
+            i--
         }
         i++
     }
-    return creditLeft;
+    return {
+        rem_credit: creditLeft,
+        rem_players: n
+    }
 }
 
 function getMaxCreditPlayers(players, creditLeft, n /** number of players needed */) {
     // let result = [];
     //debugger
-    return _getMaxCreditPlayers(players, 0, [], n, creditLeft)
+    return _getMaxCreditPlayers(players, 0, [], n, n, creditLeft)
 }
 
-function _getMaxCreditPlayers(players, currentIndex, result, n, creditLeft) {
+function _getMaxCreditPlayers(players, currentIndex, result, totalN, currentN, creditLeft) {
     //debugger
     let p = players[currentIndex];
-    if (currentIndex >= players.length || n === 0)
+    if (currentIndex >= players.length || currentN === 0)
         return {
             rem_credit: creditLeft,
             players: result
@@ -166,47 +198,83 @@ function _getMaxCreditPlayers(players, currentIndex, result, n, creditLeft) {
 
     let r1, r2;
     // when current player is selected
-    if (creditLeft - p.credit >= 0)
-        r1 = _getMaxCreditPlayers(players, currentIndex + 1, [...result, p], n-1, creditLeft - p.credit)
+    if (p.credit <= creditLeft) {
+        let res = _.cloneDeep(result)
+        res.push(p)
+        r1 = _getMaxCreditPlayers(players, currentIndex + 1, res, totalN, currentN-1, creditLeft - p.credit)
 
-    // when current player is not selected
-    r2 = _getMaxCreditPlayers(players, currentIndex + 1, result, n, creditLeft)
+        // when current player is not selected
+        r2 = _getMaxCreditPlayers(players, currentIndex + 1, result, totalN, currentN, creditLeft)
 
-    // if both paths have found required players
-    if (r1 && r1.players.length === n && r1.players.length === n) {
-        // select one with less credits remaining
+        // if both paths have found required players
+        if (r1 && r2) { // && r1.players.length === totalN && r1.players.length === totalN) {
+            // select one with less credits remaining
+            let r1_credit_sum = getCreditSum(r1.players)
+            let r2_credit_sum = getCreditSum(r2.players)
+            if (r1_credit_sum === r2_credit_sum)
+                return {
+                    players: r1.rem_credit < r2.rem_credit ? r1.players : r2.players,
+                    rem_credit: r1.rem_credit < r2.rem_credit ? r1.rem_credit : r2.rem_credit,
+                    points: r1.rem_credit < r2.rem_credit ? r1_credit_sum : r2_credit_sum
+                }
+            if (r1_credit_sum > r2_credit_sum)
+                return {
+                    players: r1.players,
+                    rem_credit: r1.rem_credit,
+                    points: r1_credit_sum
+                }
+            else 
+                return {
+                    players: r2.players,
+                    rem_credit: r2.rem_credit,
+                    points: r2_credit_sum
+                }
+        }
+
+    } else {
+        // when current player is not selected
+        r2 = _getMaxCreditPlayers(players, currentIndex + 1, result, totalN, currentN, creditLeft)
+        let r2_credit_sum = getCreditSum(r2.players)
         return {
-            players: r1.rem_credit < r2.rem_credit ? r1.players : r2.players,
-            rem_credit: r1.rem_credit < r2.rem_credit ? r1.rem_credit : r2.rem_credit
+            players: r2.players,
+            rem_credit: r2.rem_credit,
+            points: r2_credit_sum
         }
     }
+
     // return the one with all the required players
-    if (r1 && r1.players.length === n) {
-        return {
-            players: r1.players,
-            rem_credit: r1.rem_credit
-        }
-    }
+    // if (r1 && r1.players.length === totalN) {
+    //     return {
+    //         players: r1.players,
+    //         rem_credit: r1.rem_credit
+    //     }
+    // }
 
-    return {
-        players: r2.players,
-        rem_credit: r2.rem_credit
-    }
+    // return {
+    //     players: r2.players,
+    //     rem_credit: r2.rem_credit
+    // }
 }
 
-function getMinMaxCredit(playerList) {
-    let min = 9999, max = 0;
-    playerList && playerList.forEach((p) => {
-        if (p.credit > max)
-            max = p.credit;
-        if (p.credit < min)
-            min = p.credit
-    })
-    return {
-        min: min,
-        max: max
-    }
+function getCreditSum(list) {
+    let sum = 0;
+    list && list.forEach((p) => sum += p.points) //p.credit
+    return sum;
 }
+
+// function getMinMaxCredit(playerList) {
+//     let min = 9999, max = 0;
+//     playerList && playerList.forEach((p) => {
+//         if (p.credit > max)
+//             max = p.credit;
+//         if (p.credit < min)
+//             min = p.credit
+//     })
+//     return {
+//         min: min,
+//         max: max
+//     }
+// }
 
 function canSelectPlayer(player/** object */, counts/** object */, constraints/** object */, creditLeft/** number */) {
     if (counts[player.role] < constraints[player.role][1] && (creditLeft - player.credit > 0)) {
@@ -226,25 +294,25 @@ function getBalancedTeam() {
 // -> array of "n" number of players (can be < n) with total
 // -> creditLeft
 // overall credit <= maxCredit from given array of "players"
-function getPlayers(players, n, role /** wk, bt, ar, bl */, maxCredit) {
-    let result = {
-        players: [],
-        rem_credit: maxCredit
-    }
-    if (!players || players.length === 0)
-        return result
+// function getPlayers(players, n, role /** wk, bt, ar, bl */, maxCredit) {
+//     let result = {
+//         players: [],
+//         rem_credit: maxCredit
+//     }
+//     if (!players || players.length === 0)
+//         return result
 
-    // sort list by points
-    const sortedByPoints = _.sortBy(players, ['points'], ['desc']);
+//     // sort list by points
+//     const sortedByPoints = _.sortBy(players, ['points'], ['desc']);
 
-    // select first n players from the list
-    let i = 0;
-    while(i < n && n < players.length) {
-        result.players.push(players[i]);
-        result.rem_credit -= players[i].credit;
-        i++
-    }
-    return result
-}
+//     // select first n players from the list
+//     let i = 0;
+//     while(i < n && n < players.length) {
+//         result.players.push(players[i]);
+//         result.rem_credit -= players[i].credit;
+//         i++
+//     }
+//     return result
+// }
 
 
