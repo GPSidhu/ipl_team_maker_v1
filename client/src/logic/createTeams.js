@@ -8,8 +8,8 @@ import {
 const TEAM_TYPES = [
     {type: 'biased', team: 1},  // team1 to win: max players(7) will be selected from team1
     {type: 'biased', team: 2},  // team2 to win: max players(7) will be selected from team2
-    // {type: 'balanced', team: 1}, // anybody can win: max players(6) will be selected from team1
-    // {type: 'balanced', team: 2}, // anybody can win: max players(6) will be selected from team2
+    {type: 'balanced', team: 1}, // anybody can win: max players(6) will be selected from team1
+    {type: 'balanced', team: 2}, // anybody can win: max players(6) will be selected from team2
 ]
 
 /* 
@@ -33,7 +33,6 @@ export const createTeams = function(team1, team2, constraints = {
     }
     let res = [];
     let data = preProcess(team1, team2)
-    //console.log(processedData);
     for(let o in TEAM_TYPES) {
         let config = {
             team_type: TEAM_TYPES[o],
@@ -43,8 +42,6 @@ export const createTeams = function(team1, team2, constraints = {
             t2: team2.code
         }
         let base = selectTeam(data, config)
-        console.log('base team + '+ (o+1))
-        console.log(base)
         let o_team = {name: `Team ${(o + 1 )}`}
         o_team.players = {};
         o_team.playingCount = 0;
@@ -77,32 +74,20 @@ function preProcess(team1, team2) {
     }
 }
 
-// select min players in each category i.e. wk, bt, ar, bl
+// select balanced or biased team based on config and constraints
 function selectTeam(data, config) {
-    const teamType = config.team_type;
-
-    // in case of biased, start with the highest point player of 
-    switch(teamType.type) {
-        case 'biased': return getBiasedTeam(data, config, teamType.team)
-                break;
-
-        case 'balanced': return getBalancedTeam(data, config) 
-                break;
-        
-        default: //random
-    }
+    const constraints = config.constraints;
+    const t = config.team_type.team;
+    let max_players_from_fav_team = constraints.max;
+    if (config.team_type.type === 'balanced')
+        max_players_from_fav_team = 6;
     
-    return {}
-}
-
-
-function getBiasedTeam(data, config, t /** 1 or 2 */) { 
     let players = [];
     let creditLeft = config.max_credit;
-    const constraints = config.constraints;
     const fav_team_sorted = t === 1 ? _.cloneDeep(data.t1_sorted) : _.cloneDeep(data.t2_sorted);
     const other_team_sorted = t !== 1 ? _.cloneDeep(data.t1_sorted) : _.cloneDeep(data.t2_sorted);
     let fav_team_count = 0;
+
 
     let counts = {
             wk: 0,
@@ -120,7 +105,7 @@ function getBiasedTeam(data, config, t /** 1 or 2 */) {
             fav_team_count++;
             totalPlayersToSelect--;
         }
-        if (totalPlayersToSelect === 0 || fav_team_count === constraints.max)
+        if (totalPlayersToSelect === 0 || fav_team_count === max_players_from_fav_team)
             break;
     }
 
@@ -140,7 +125,7 @@ function getBiasedTeam(data, config, t /** 1 or 2 */) {
     const remPlayers = getMaxPointPlayersUnderCredit(other_team_sorted, creditLeft)
 
     if (remPlayers.length < totalPlayersToSelect) {
-        console.log('[getMaxPointPlayersUnderCredit] could not find remaining players within credit limit')
+        console.error('[getMaxPointPlayersUnderCredit] could not find remaining players within credit limit')
     }
 
     return {
@@ -166,10 +151,4 @@ function addPlayer(role/** 'wk', 'bt',... */, playersList/** array */, n, credit
         rem_credit: creditLeft,
         rem_players: n
     }
-}
-
-
-
-function getBalancedTeam() {
-
 }
