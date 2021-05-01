@@ -27,16 +27,22 @@ class TeamCard extends React.Component {
     render() {
         const team = this.props.team
         return (
-            <div className="card m-1 disabled"
+            <div className="card m-1 active"
                 style={{
-                    background: this.props.selected ? '#ed9482' : '#fff',
+                    background: this.props.selected ? '#007bff' : '#fff', //'#ed9482' : '#fff',
                     height: '100px',
                     width: '150px',
                     maxWidth: '200px',
                     border: '1px solid'
                 }}
                 onClick={this.onClickHandler}>
-                <div className="card-body font-weight-bold">{team.name}</div>
+                <div className="d-flex justify-content-center">
+                    {/* {team.name} */}
+                    <figure>
+                        <img src={`/logos/${team.code}.png`} style={{height: '96px', width: '100px'}} />
+                        {/* <figcaption>{team.name}</figcaption> */}
+                    </figure>
+                </div>
             </div>
         )
     }

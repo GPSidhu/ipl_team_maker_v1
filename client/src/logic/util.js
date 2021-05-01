@@ -10,6 +10,7 @@ export function getMaxPointPlayersUnderCredit(players, maxCredit) {
             finalIndex = i;
         }
     }
+    
     if (finalIndex !== -1) {
         return {
             rem_credit: maxCredit - getSumByKey(options[finalIndex], 'credit'),
@@ -36,13 +37,13 @@ export function getMaxPlayersInCredit(arr=[8, 7, 9, 8, 10, 11], maxCredit=26) {
 function  _getMaxPlayersInCredit(list, n, currentList, creditLeft, res) {
     // If remaining sum is 0, then print all 
     // elements of current subset. 
-    if (creditLeft == 0) {
+    if (creditLeft === 0) {
         res.push(currentList)
         return; 
     } 
 
     // If no remaining elements, 
-    if (n == 0) 
+    if (n === 0) 
         return;
 
     // do not include last element    

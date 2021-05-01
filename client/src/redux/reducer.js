@@ -18,8 +18,8 @@ const teamsReducer = function teams(state = defaultState, action) {
                                 ...state.playingTeams,
                                         {
                                             ...action.team,
-                                            playing11: getFirst11(action.team), //remove - []
-                                            playingCount: 11 //remove
+                                            playing11: [], //getFirst11(action.team), // testing
+                                            //playingCount: 11 - testing
                                         }
                             ]
                             let allTeams = setSelected(state.teams, playingTeams)
@@ -67,6 +67,8 @@ const teamsReducer = function teams(state = defaultState, action) {
         case 'CREATE_TEAMS': 
                             let res = createTeams(action.team1, action.team2, action.constraints || undefined) || []
                             return {...state, result: [...res]} 
+        case 'CLEAR_TEAMS': 
+                            return {...state, result: [], playingTeams: []}
         default: return state
     }
 }

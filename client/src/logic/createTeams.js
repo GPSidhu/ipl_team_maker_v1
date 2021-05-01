@@ -4,6 +4,9 @@ import {
     getMaxPointPlayersUnderCredit
 } from './util'
 
+const COLOR = {
+    HEADER : "#454442"
+}
 // Result will contain following type of teams 
 const TEAM_TYPES = [
     {type: 'biased', team: 1},  // team1 to win: max players(7) will be selected from team1
@@ -42,9 +45,14 @@ export const createTeams = function(team1, team2, constraints = {
             t2: team2.code
         }
         let base = selectTeam(data, config)
-        let o_team = {name: `Team ${(o + 1 )}`}
+        let o_team = {name: `Team ${parseInt(o)+1}`}
         o_team.players = {};
         o_team.playingCount = 0;
+        o_team.rem_credit = parseFloat(base.rem_credit);
+        o_team.t1 = base.t1;
+        o_team.t2 = base.t2;
+        o_team.color = COLOR.HEADER;
+        o_team.cvc_candidates = base.cvc_candidates;
         if (base.players) {
             o_team.players.wicketkeepers = base.players.filter((p) => p.role === 'wk');
             o_team.players.batsmen = base.players.filter((p) => p.role === 'bt');
@@ -84,10 +92,12 @@ function selectTeam(data, config) {
     
     let players = [];
     let creditLeft = config.max_credit;
+    const team1 = t === 1 ? data.team1 : data.team2;
+    const team2 = t !== 1 ? data.team1 : data.team2;
     const fav_team_sorted = t === 1 ? _.cloneDeep(data.t1_sorted) : _.cloneDeep(data.t2_sorted);
     const other_team_sorted = t !== 1 ? _.cloneDeep(data.t1_sorted) : _.cloneDeep(data.t2_sorted);
     let fav_team_count = 0;
-
+    let other_team_count = 0;
 
     let counts = {
             wk: 0,
@@ -115,32 +125,57 @@ function selectTeam(data, config) {
             if (counts[k] < constraints[k][0]) {
                 let ot = addPlayer(k, other_team_sorted, constraints[k][0] - counts[k], creditLeft, players);
                 creditLeft = ot.rem_credit;
+                other_team_count += ot.added_players || 0;
                 if (ot.rem_players === 0) // constraints met update counts
                     counts[k] = constraints[k][0]
             }
         })
-
+    
     // need to select remaining players from other team with remaining credits left
     totalPlayersToSelect = 11 - players.length; 
     const remPlayers = getMaxPointPlayersUnderCredit(other_team_sorted, creditLeft)
-
-    if (remPlayers.length < totalPlayersToSelect) {
-        console.error('[getMaxPointPlayersUnderCredit] could not find remaining players within credit limit')
+    if (remPlayers && remPlayers.players) {
+        other_team_count += remPlayers.players.length;
+        if (remPlayers.players.length < totalPlayersToSelect) {
+            console.error('[getMaxPointPlayersUnderCredit] could not find remaining players within credit limit')
+        }
     }
-
+    // console.log('all players')
+    const playing11 = [...players, ...remPlayers.players];
+    // console.log(playing11)
+    const sortedPlaying11 = _.orderBy(playing11, ['points'], ['desc']);
+    // console.log('all players - sorted')
+    // console.log(sortedPlaying11)
+    const cvc_candidates = _.slice(sortedPlaying11, 0, 2);
+    // console.log(cvc_candidates)
     return {
         rem_credit: remPlayers.rem_credit,
-        players: [...players, ...remPlayers.players],
-        counts: counts
+        players: playing11,
+        cvc_candidates: cvc_candidates,
+        counts: counts,
+        t1: {
+            name: team1.name,
+            code: team1.code,
+            color: team1.color,
+            playingCount: fav_team_count
+        },
+        t2: {
+            name: team2.name,
+            code: team2.code,
+            color: team2.color,
+            playingCount: other_team_count
+        },
     }
 }
 
 function addPlayer(role/** 'wk', 'bt',... */, playersList/** array */, n, creditLeft, result/** array */) {
     let i = 0;
+    let c = 0;
     while(n > 0 && i < playersList.length) {
         if (playersList[i].role === role) {
             result.push(playersList[i]);
             creditLeft -= playersList[i].credit;
+            c++;
             n--;
             playersList.splice(i, 1);
             i--
@@ -149,6 +184,7 @@ function addPlayer(role/** 'wk', 'bt',... */, playersList/** array */, n, credit
     }
     return {
         rem_credit: creditLeft,
-        rem_players: n
+        rem_players: n,
+        added_players: c
     }
 }

@@ -6,12 +6,17 @@ class Home extends Component {
     constructor(props) {
       super(props)
       this.createTeamHandler = this.createTeamHandler.bind(this)
+      this.resetTeamHandler = this.resetTeamHandler.bind(this)
     }
 
     isSelected(thisTeam) {
       return (
         this.props.playingTeams.some((t) => thisTeam.code === t.code)
       )
+    }
+
+    resetTeamHandler() {
+      this.props.clearTeams();
     }
 
     createTeamHandler() {
@@ -30,6 +35,11 @@ class Home extends Component {
         return
       }
       this.props.createTeams(team1, team2)
+      setTimeout(() => {
+        let el = document.getElementById('output-area')
+        if (el)
+          el.scrollIntoView({behavior: 'smooth'});
+      }, 500);
     }
 
     render() {
@@ -46,30 +56,32 @@ class Home extends Component {
                         ), this)
                       }
                     </div>
-                    <h5 className="justify-content-center">Select Playing 11</h5>
+                    <div className="d-flex justify-content-center text-secondary mb-3 mt-3">Select Playing 11</div>
                     <div className="player-area row justify-content-center mt-3">
-                      <div className="col left-section">
-                        {team1 && <TeamLayout team={team1} {...this.props} />}
+                      <div className="col-lg-4 left-section d-flex justify-content-center">
+                        {team1 && <TeamLayout id={`tl1`} team={team1} {...this.props} selectEnabled={true} />}
                         {!team1 && <span>No team selected</span>}
                       </div>
-                      <div className="col center-line-container" >
-                        <div className="center-line" />
+                      <div className="col-lg-2 center-line-container" >
+                        <div className="center-line border-secondary" />
                       </div>
-                      <div className="col right-section">
-                        {team2 && <TeamLayout team={team2} {...this.props} />}
+                      <div className="col-lg-4 right-section d-flex justify-content-center">
+                        {team2 && <TeamLayout id={`tl2`} team={team2} {...this.props} selectEnabled={true} />}
                         {!team2 && <span>No team selected</span>}
                       </div>
                     </div>
                 </section>
                   <section className="ouptut-area container mt-2 mb-3">
                   <div className="team-area row justify-content-center">
-                    <button className="btn btn-primary" onClick={this.createTeamHandler}>Create Team</button>
+                    <button className="btn btn-primary ml-2 mr-2" onClick={this.createTeamHandler}>Create Teams</button>
+                    <button className="btn btn-primary ml-2 mr-2" onClick={this.resetTeamHandler}>Clear</button>
                   </div>
-                  <div className="player-area row justify-content-start mt-3">
+                  <hr/>
+                  <div id="output-area" className="player-area row justify-content-start mt-3">
                     {
                       result.map((t, i) => (
-                          <div className="col left-section" key={`res_${i}`}>
-                            {t && <TeamLayout team={t} {...this.props} />}
+                          <div className="col-sm-12 col-md-6 col-lg-6 left-section" key={`res_${i}`}>
+                            {t && <TeamLayout team={t} {...this.props} selectEnabled={false} />}
                           </div>
                       ))
                     }
