@@ -36,3 +36,9 @@ export function createTeams(team1, team2, constraints) {
         constraints: constraints
     }
 }
+
+export function clearTeams() {
+    return {
+        type: 'CLEAR_TEAMS'
+    }
+}

@@ -23,7 +23,7 @@ class Main extends Component {
     
     return (<div className="App mb-5 mt-5">
               <div className="container d-flex align-content-start flex-wrap justify-content-center">
-                <h1>Fantasy Team Maker</h1>
+                <h1>Dream11 Team Maker</h1>
                 <Route exact path="/" render={() => (
                     <Home {...this.props} />
                 )} />
