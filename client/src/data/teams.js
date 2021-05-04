@@ -472,7 +472,7 @@ const teams = [
             id: 34,
             points: 413,
             credit: 10,
-            role: 'wk'
+            role: 'bt'
           },
           {
               name: 'S Raina',
@@ -624,7 +624,7 @@ const teams = [
             id: 54,
             points: 494,
             credit: 10.5,
-            role: 'wk'
+            role: 'bt'
           },
           {
               name: 'P Shaw',

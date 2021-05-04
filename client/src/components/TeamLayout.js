@@ -25,7 +25,7 @@ class TeamLayout extends React.Component {
         // console.log(this.props.team)
         const {players, name, rem_credit, playingCount, t1, t2} = this.props.team;
         return (
-            <div className="mb-5">
+            <div className="mb-5" style={{minWidth: "300px"}}>
                 <div className="container pr-4 pl-4 pb-2 pt-2" style={{backgroundColor: this.props.team.color, color: '#fff'}}>
                     <div className="row d-flex justify-content-between">
                         <h4>{`${name}`}</h4>
