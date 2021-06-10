@@ -11,12 +11,6 @@ class TeamCard extends React.Component {
         this.onClickHandler = this.onClickHandler.bind(this)
     }
 
-    // componentDidUpdate(prevProps) {
-    //     if (prevProps.text !== this.props.text) {
-    //       this.updateAndNotify();
-    //     }
-    // }
-
     onClickHandler () {
         if (!this.props.selected)
             this.props.selectTeam(this.props.team)
@@ -29,7 +23,7 @@ class TeamCard extends React.Component {
         return (
             <div className="card m-1 active"
                 style={{
-                    background: this.props.selected ? '#007bff' : '#fff', //'#ed9482' : '#fff',
+                    background: this.props.selected ? '#007bff' : '#fff',
                     height: '100px',
                     width: '150px',
                     maxWidth: '200px',
@@ -37,10 +31,8 @@ class TeamCard extends React.Component {
                 }}
                 onClick={this.onClickHandler}>
                 <div className="d-flex justify-content-center">
-                    {/* {team.name} */}
                     <figure>
-                        <img src={`/logos/${team.code}.png`} style={{height: '96px', width: '100px'}} />
-                        {/* <figcaption>{team.name}</figcaption> */}
+                        <img src={`/logos/${team.code}.png`} alt={`${team.code}.png`} style={{height: '96px', width: '100px'}} />
                     </figure>
                 </div>
             </div>
